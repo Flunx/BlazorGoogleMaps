@@ -143,9 +143,9 @@ namespace GoogleMapsComponents.Maps
         /// The heading value is measured in degrees (clockwise) from cardinal direction North.
         /// </summary>
         /// <returns></returns>
-        public Task<int> GetHeading()
+        public Task<float> GetHeading()
         {
-            return _jsObjectRef.InvokeAsync<int>("getHeading");
+            return _jsObjectRef.InvokeAsync<float>("getHeading");
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace GoogleMapsComponents.Maps
         /// </summary>
         /// <param name="heading"></param>
         /// <returns></returns>
-        public Task SetHeading(int heading)
+        public Task SetHeading(float heading)
         {
             return _jsObjectRef.InvokeAsync("setHeading", heading);
         }
@@ -177,9 +177,9 @@ namespace GoogleMapsComponents.Maps
         /// See setTilt for details.
         /// </summary>
         /// <returns></returns>
-        public Task<int> GetTilt()
+        public Task<float> GetTilt()
         {
-            return _jsObjectRef.InvokeAsync<int>("getTilt");
+            return _jsObjectRef.InvokeAsync<float>("getTilt");
         }
 
         /// <summary>
@@ -192,17 +192,17 @@ namespace GoogleMapsComponents.Maps
         /// </summary>
         /// <param name="tilt"></param>
         /// <returns></returns>
-        public Task SetTilt(int tilt)
+        public Task SetTilt(float tilt)
         {
             return _jsObjectRef.InvokeAsync("setTilt", tilt);
         }
 
-        public Task<int> GetZoom()
+        public Task<float> GetZoom()
         {
-            return _jsObjectRef.InvokeAsync<int>("getZoom");
+            return _jsObjectRef.InvokeAsync<float>("getZoom");
         }
 
-        public Task SetZoom(int zoom)
+        public Task SetZoom(float zoom)
         {
             return _jsObjectRef.InvokeAsync("setZoom", zoom);
         }
