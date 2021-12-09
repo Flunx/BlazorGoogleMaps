@@ -218,6 +218,7 @@ namespace GoogleMapsComponents.Maps
         /// </summary>
         public ZoomControlOptions ZoomControlOptions { get; set; }
 
+#nullable enable
         /// <summary>
         /// Type:  string optional
         /// The unique identifier that represents a single instance of a Google Map.
@@ -226,7 +227,7 @@ namespace GoogleMapsComponents.Maps
         /// page without changing embedded JSON styling in your application code.
         /// </summary>
         public string? MapId { get; set; }
-
+#nullable disable
 
         /// <summary>
         /// Enabling this lets you zoom using fractional values instead of integers.

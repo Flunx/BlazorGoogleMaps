@@ -15,13 +15,13 @@ namespace GoogleMapsComponents.Maps
         /// Indicates whether this Polyline handles mouse events. 
         /// Defaults to true.
         /// </summary>
-        public bool? Clickable { get; set; }
+        public new bool? Clickable { get; set; }
 
         /// <summary>
         /// If set to true, the user can drag this shape over the map. 
         /// The geodesic property defines the mode of dragging. Defaults to false.
         /// </summary>
-        public bool? Draggable { get; set; }
+        public new bool? Draggable { get; set; }
 
         /// <summary>
         /// If set to true, the user can edit this shape by dragging the control points shown at the vertices and on each segment. 
@@ -45,7 +45,7 @@ namespace GoogleMapsComponents.Maps
         /// Map on which to display Polyline.
         /// </summary>
         [JsonConverter(typeof(JsObjectRefConverter<Map>))]
-        public Map Map { get; set; }
+        public new Map Map { get; set; }
 
         /// <summary>
         /// The ordered sequence of coordinates of the Polyline.
@@ -70,11 +70,11 @@ namespace GoogleMapsComponents.Maps
         /// <summary>
         /// Whether this polyline is visible on the map. Defaults to true.
         /// </summary>
-        public bool? Visible { get; set; }
+        public new bool? Visible { get; set; }
 
         /// <summary>
         /// The zIndex compared to other polys.
         /// </summary>
-        public int? ZIndex { get; set; }
+        public new int? ZIndex { get; set; }
     }
 }

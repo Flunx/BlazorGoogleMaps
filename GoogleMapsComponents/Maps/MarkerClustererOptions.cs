@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace GoogleMapsComponents.Maps
 {
+#nullable enable
     /// <summary>
     /// MarkerClustererOptions object used to define the properties that can be passed to a MarkerClusterer.
     /// </summary>
@@ -89,3 +90,4 @@ namespace GoogleMapsComponents.Maps
         public bool? ZoomOnClick { get; set; }
     }
 }
+#nullable disable

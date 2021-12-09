@@ -8,11 +8,13 @@ namespace GoogleMapsComponents.Maps
     /// </summary>
     public class OverlayCompleteEvent
     {
+#nullable enable
         public Polygon? Polygon { get; set; }
         public Marker? Marker { get; set; }
         public Polyline? Polyline { get; set; }
         public Rectangle? Rectangle { get; set; }
         public Circle? Circle { get; set; }
+#nullable disable
 
         /// <summary>
         /// The completed overlay's type.
