@@ -1,6 +1,9 @@
 # BlazorGoogleMaps
 Blazor interop for GoogleMap library
 
+**Breaking change from 2.0.0**
+LatLngLiteral constructor's parameters order changed #173
+
 [![NuGet version (BlazorGoogleMaps)](https://img.shields.io/nuget/v/BlazorGoogleMaps)](https://www.nuget.org/packages/BlazorGoogleMaps/)
 
 ## Usage
@@ -11,15 +14,15 @@ How to get key follow https://developers.google.com/maps/documentation/javascrip
 ```
 Add path to project javascript functions file in wwwroot/index.html in Client side or _Host.cshtml in Server Side.
 ```
-<script src="_content/BlazorGoogleMaps/objectManager.js"></script>
+<script src="_content/BlazorGoogleMaps/js/objectManager.js"></script>
 ```
 If you want to use marker clustering in a Server Side project then add the following script to _Host.cshtml.
 ```
-<script src="https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js"></script>
+<script src="https://unpkg.com/@@googlemaps/markerclusterer/dist/index.min.js"></script>
 ```
 If you want to use marker clustering in a Client Side project then add the following script to wwwroot/index.html.
 ```
-<script src="https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js"></script>
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 ```
 
 2. Use component in client and server side same

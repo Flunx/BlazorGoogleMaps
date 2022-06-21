@@ -79,7 +79,7 @@ namespace GoogleMapsComponents
         public static Task<JsObjectRef> CreateAsync(
             IJSRuntime jsRuntime,
             string constructorFunctionName,
-            params object[] args)
+            params object?[] args)
         {
             return CreateAsync(jsRuntime, Guid.NewGuid(), constructorFunctionName, args);
         }
@@ -117,7 +117,7 @@ namespace GoogleMapsComponents
             IJSRuntime jsRuntime,
             Guid guid,
             string functionName,
-            params object[] args)
+            params object?[] args)
         {
             var jsObjectRef = new JsObjectRef(jsRuntime, guid);
 
@@ -144,7 +144,7 @@ namespace GoogleMapsComponents
             );
 
             return jsObjectRefs;
-        }        
+        }
 
         public virtual void Dispose()
         {
@@ -287,6 +287,14 @@ namespace GoogleMapsComponents
                  propertyName);
 
             return new JsObjectRef(_jsRuntime, new Guid(guid));
+        }
+
+        public Task<T> GetMappedValue<T>(string propertyName, params string[] mappedNames)
+        {
+            return _jsRuntime.MyInvokeAsync<T>(
+                "googleMapsObjectManager.readObjectPropertyValueAndMapToArray",
+                 _guid.ToString(),
+                 propertyName, mappedNames);
         }
 
         public override bool Equals(object obj)

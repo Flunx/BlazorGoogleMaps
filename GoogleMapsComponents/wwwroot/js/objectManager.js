@@ -317,9 +317,7 @@ window.googleMapsObjectManager = {
         let guids = JSON.parse(args[0]);
 
         for (var i = 0; i < args2.length; i++) {
-            let args3 = [];
-            args3.push(args2[i]);
-            let obj = new constructor(...args3);
+            let obj = new constructor(args2[i]);
 
             if ("set" in obj) {
                 obj.set("guidString", guids[i]);
@@ -409,6 +407,21 @@ window.googleMapsObjectManager = {
         let obj = window._blazorGoogleMapsObjects[args[0]];
         let functionToInvoke = args[1];
 
+        //We make check if element is LatLng and cast it.
+        //It could be bug here.
+        if (Array.isArray(args2) && args2.length > 0) {
+            var cloneArgs = args2;
+            args2 = new Array();
+            for (let i = 0, len = cloneArgs.length; i < len; i++) {
+                var element = cloneArgs[i];
+                if (element != null && element !== undefined && element.hasOwnProperty("lat") && element.hasOwnProperty("lng")) {
+                    args2.push(new google.maps.LatLng(element.lat, element.lng));
+                } else {
+                    args2.push(element);
+                }
+            }
+        }
+
         //If function is route, then handle callback in promise.
         if (functionToInvoke == "googleMapDirectionServiceFunctions.route") {
             let dirRequest = args2[0];
@@ -446,7 +459,15 @@ window.googleMapsObjectManager = {
         else if (functionToInvoke == "setData") {
             var pointArray = new google.maps.MVCArray();
             for (i = 0; i < args2[0].length; i++) {
-                pointArray.push(new google.maps.LatLng(args2[0][i].lat, args2[0][i].lng))
+                var cord = args2[0][i];
+
+                if (cord.hasOwnProperty("weight")) {
+                    var cordLocation = new google.maps.LatLng(cord.location.lat, cord.location.lng);
+                    var location = { location: cordLocation, weight: cord.weight };
+                    pointArray.push(location);
+                } else {
+                    pointArray.push(new google.maps.LatLng(cord.lat, cord.lng));
+                }
             }
 
             try {
@@ -466,12 +487,41 @@ window.googleMapsObjectManager = {
 
             let jsonRest = JSON.stringify(cleanDirectionResult(result, dirRequestOptions));
             return jsonRest;
+        }
+        else if (functionToInvoke == "getProjection") {
+
+            try {
+                var projection = obj[functionToInvoke](...args2);
+                _blazorGoogleMapsObjects[args[2]] = projection;
+            } catch (e) {
+                console.log(e);
+            }
+        }
+        else if (functionToInvoke == "createPath") {
+
+            try {
+                var projection = _blazorGoogleMapsObjects[args[0]].getPath();
+                _blazorGoogleMapsObjects[args[2]] = projection;
+            } catch (e) {
+                console.log(e);
+            }
+        }
+        else if (functionToInvoke == "fromLatLngToPoint") {
+
+            try {
+                var point = obj[functionToInvoke](args2[0]);
+                return point;
+            } catch (e) {
+                console.log(e);
+            }
+
         } else {
             var result = null;
             try {
                 result = obj[functionToInvoke](...args2);
             } catch (e) {
                 console.log(e);
+                console.log("\nfunctionToInvoke: " + functionToInvoke + "\nargs: " + args2 + "\n");
             }
 
             if (result !== null
@@ -526,14 +576,13 @@ window.googleMapsObjectManager = {
         return results;
     },
 
-    invokeWithReturnedObjectRef: function (args) {
+    invokeWithReturnedObjectRef: async function (args) {
         let result = googleMapsObjectManager.invoke(args);
         let uuid = uuidv4();
 
         //console.log("invokeWithReturnedObjectRef " + uuid);
-
-        //Removed since here exists only events and whats point of having event in this array????
-        //window._blazorGoogleMapsObjects[uuid] = result;
+        //This is needed to be able to remove events from map
+        window._blazorGoogleMapsObjects[uuid] = await result;
 
         return uuid;
     },
@@ -609,21 +658,95 @@ window.googleMapsObjectManager = {
         return uuid;
     },
 
-    addClusteringMarkers(guid, mapGuid, markers, options) {
+    readObjectPropertyValueAndMapToArray: function (args) {
+        let obj = window._blazorGoogleMapsObjects[args[0]];
+        let result = obj[args[1]];
+        let props = tryParseJson(args[2]);
+        for (var i = 0; i < props.length; i++) {
+            result = result.map((x) => x[props[i]]);
+        }
+        return result;
+    },
+
+    //based on https://googlemaps.github.io/js-markerclusterer/
+    createClusteringMarkers(guid, mapGuid, markers, options) {
         const map = window._blazorGoogleMapsObjects[mapGuid];
 
         const originalMarkers = markers.map((marker, i) => {
             return window._blazorGoogleMapsObjects[marker.guid];
         });
 
-        const markerCluster = new MarkerClusterer(map, originalMarkers, options);
+        const markerClustererOptions = {
+            map: map,
+            markers: originalMarkers,
+        };
+
+        if (options && options.rendererObjectName) {
+            const splits = options.rendererObjectName.split(".");
+            try {
+                let renderer = window[splits[0]];
+                for (i = 1; i < splits.length; i++) {
+                    renderer = renderer[splits[i]];
+                }
+                markerClustererOptions.renderer = renderer;
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
+        if (options && options.algorithmObjectName) {
+            const splits = options.algorithmObjectName.split(".");
+            try {
+                let algorithm = window[splits[0]];
+                for (i = 1; i < splits.length; i++) {
+                    algorithm = algorithm[splits[i]];
+                }
+                markerClustererOptions.algorithm = algorithm;
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
+        if (options && !options.zoomOnClick) {
+            markerClustererOptions.onClusterClick = () => { };
+        }
+
+        const markerCluster = new markerClusterer.MarkerClusterer(markerClustererOptions);
+
+        /*        const newMarkers = trees.map(({ geometry }, i) => new google.maps.Marker({
+                    position: {
+                        lat: geometry.coordinates[1],
+                        lng: geometry.coordinates[0],
+                    },
+                    label: labels[i % labels.length],
+                    map,
+                }));
+                const markerCluster = new markerClusterer.MarkerClusterer({
+                    map: map,
+                    markers: newMarkers
+                });
+        */
 
         if ("set" in markerCluster) {
             markerCluster.set("guidString", guid);
         }
 
         window._blazorGoogleMapsObjects[guid] = markerCluster;
+    },
+
+    removeClusteringMarkers(guid, markers, noDraw) {
+        const originalMarkers = markers.map((marker, i) => {
+            return window._blazorGoogleMapsObjects[marker.guid];
+        });
+
+        window._blazorGoogleMapsObjects[guid].addMarkers(originalMarkers, noDraw);
+    },
+
+    addClusteringMarkers(guid, markers, noDraw) {
+        const originalMarkers = markers.map((marker, i) => {
+            return window._blazorGoogleMapsObjects[marker.guid];
+        });
+
+        window._blazorGoogleMapsObjects[guid].addMarkers(originalMarkers, noDraw);
     }
 };
-
-//export { googleMapsObjectManager }

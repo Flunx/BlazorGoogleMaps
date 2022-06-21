@@ -7,6 +7,9 @@
 <GoogleMap @ref="@map1" Id="map1" Options="@mapOptions" OnAfterInit="async () => await OnAfterMapInit()"></GoogleMap>
 <button @onclick="StartDrawingPolyline">Start drawing polyline</button>
 <button @onclick="EndDrawingPolyline">End drawing polyline</button>
+<button @onclick="AppendToPolylinePath">Append to last polyline path</button>
+<button @onclick="ClearPolylinePath">Clear last polyline path</button>
+<br />
 <button @onclick="AddArrowsToPolyline">Add arrow symbols to polyline</button>
 <button @onclick="RemoveArrowsFromPolyline">Remove arrow symbols from polyline</button>
 <br />
@@ -44,15 +47,15 @@
     protected override void OnInitialized()
     {
         mapOptions = new MapOptions()
-        {
-            Zoom = 13,
-            Center = new LatLngLiteral()
             {
-                Lat = 13.505892,
-                Lng = 100.8162
-            },
-            MapTypeId = MapTypeId.Roadmap
-        };
+                Zoom = 13,
+                Center = new LatLngLiteral()
+                {
+                    Lat = 13.505892,
+                    Lng = 100.8162
+                },
+                MapTypeId = MapTypeId.Roadmap
+            };
     }
 
     private async Task OnAfterMapInit()
@@ -63,11 +66,11 @@
     private async Task StartDrawingPolyline()
     {
         polyline = await Polyline.CreateAsync(map1.JsRuntime, new PolylineOptions()
-        {
-            Draggable = true,
-            Editable = true,
-            Map = map1.InteropObject
-        });
+            {
+                Draggable = true,
+                Editable = true,
+                Map = map1.InteropObject
+            });
 
         path.Clear();
 
@@ -76,15 +79,25 @@
 
         await polyline.AddListener("insert_at", async () =>
         {
-            path = (await polyline.GetPath().ConfigureAwait(true)).ToList();
+            if (polyline != null)
+            {
+                path = (await polyline.GetPath().ConfigureAwait(true)).ToList();
+            }
         });
         await polyline.AddListener("set_at", async () =>
-        {
-            path = (await polyline.GetPath().ConfigureAwait(true)).ToList();
-        });
+      {
+          if (polyline != null)
+          {
+              path = (await polyline.GetPath().ConfigureAwait(true)).ToList();
+          }
+      });
         await polyline.AddListener("remove_at", async () =>
         {
-            path = (await polyline.GetPath().ConfigureAwait(true)).ToList();
+            if (polyline != null)
+            {
+                path = (await polyline.GetPath().ConfigureAwait(true)).ToList();
+            }
+
         });
 
         await polyline.AddListener("click", () =>
@@ -94,12 +107,30 @@
         });
     }
 
-    private async Task EndDrawingPolyline()
+    private async Task ClearPolylinePath()
+    {
+        var line = polylines.LastOrDefault();
+        if (line == null) return;
+
+        var polylinePath = await line.CreatePath();
+        await polylinePath.Clear();
+
+    }
+    private async Task AppendToPolylinePath()
+    {
+        var line = polylines.LastOrDefault();
+        if (line == null) return;
+
+        polyline = line;
+        path = (await polyline.GetPath().ConfigureAwait(true)).ToList();
+    }
+    private Task EndDrawingPolyline()
     {
         polylines.Add(polyline);
 
         polyline = null;
         path.Clear();
+        return Task.CompletedTask;
     }
 
     private void AddArrowsToPolyline()
@@ -107,15 +138,15 @@
         foreach (var polyline in polylines)
         {
             polyline.SetOptions(new PolylineOptions
-            {
-                Icons = new IconSequence[] {
+                {
+                    Icons = new IconSequence[] {
                     new IconSequence { Icon=new Symbol { Path=SymbolPath.FORWARD_CLOSED_ARROW }, Offset="100%" },
                     new IconSequence { Icon=new Symbol { Path=SymbolPath.FORWARD_OPEN_ARROW }, Offset="80%" },
                     new IconSequence { Icon=new Symbol { Path=SymbolPath.FORWARD_OPEN_ARROW }, Offset="60%" },
                     new IconSequence { Icon=new Symbol { Path=SymbolPath.FORWARD_OPEN_ARROW }, Offset="40%" },
                     new IconSequence { Icon=new Symbol { Path=SymbolPath.FORWARD_OPEN_ARROW }, Offset="20%" },
                 }
-            });
+                });
         }
     }
 
@@ -124,21 +155,21 @@
         foreach (var polyline in polylines)
         {
             polyline.SetOptions(new PolylineOptions
-            {
-                Icons = new IconSequence[] {
+                {
+                    Icons = new IconSequence[] {
                 }
-            });
+                });
         }
     }
 
     private async Task StartDrawingPolygon()
     {
         polygon = await Polygon.CreateAsync(map1.JsRuntime, new PolygonOptions()
-        {
-            Draggable = false,
-            Editable = true,
-            Map = map1.InteropObject
-        });
+            {
+                Draggable = false,
+                Editable = true,
+                Map = map1.InteropObject
+            });
 
         // Add Listener to Paths from Polyline
         await polygon.InvokeAsync("AddListeners").ConfigureAwait(true);
@@ -159,22 +190,23 @@
         path.Clear();
     }
 
-    private async Task EndDrawingPolygon()
+    private Task EndDrawingPolygon()
     {
         polygons.Add(polygon);
 
         polygon = null;
         path.Clear();
+        return Task.CompletedTask;
     }
 
     private async Task DrawingRectangle()
     {
         rectangle = await Rectangle.CreateAsync(map1.JsRuntime, new RectangleOptions()
-        {
-            Draggable = true,
-            Editable = true,
-            Map = map1.InteropObject
-        });
+            {
+                Draggable = true,
+                Editable = true,
+                Map = map1.InteropObject
+            });
 
         path.Clear();
     }
@@ -182,12 +214,12 @@
     private async Task DrawingCircle()
     {
         circle = await Circle.CreateAsync(map1.JsRuntime, new CircleOptions()
-        {
-            Draggable = true,
-            Editable = true,
-            Map = map1.InteropObject,
-            Radius = 1000
-        });
+            {
+                Draggable = true,
+                Editable = true,
+                Map = map1.InteropObject,
+                Radius = 1000
+            });
 
         path.Clear();
     }
@@ -219,12 +251,12 @@
             }
 
             var bounds = new LatLngBoundsLiteral()
-            {
-                East = path[1].Lng,
-                North = path[0].Lat,
-                South = path[1].Lat,
-                West = path[0].Lng
-            };
+                {
+                    East = path[1].Lng,
+                    North = path[0].Lat,
+                    South = path[1].Lat,
+                    West = path[0].Lng
+                };
 
             await rectangle.SetBounds(bounds);
 
@@ -242,13 +274,13 @@
     {
 
         var polygonForPath = await Polygon.CreateAsync(map1.JsRuntime, new PolygonOptions()
-        {
-            Draggable = true,
-            Editable = false,
-            Map = map1.InteropObject,
-            FillColor = "red",
-            ZIndex = 999
-        });
+            {
+                Draggable = true,
+                Editable = false,
+                Map = map1.InteropObject,
+                FillColor = "red",
+                ZIndex = 999
+            });
 
         var path = new List<LatLngLiteral>()
 {

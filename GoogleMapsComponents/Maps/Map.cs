@@ -102,6 +102,22 @@ namespace GoogleMapsComponents.Maps
         }
 
         /// <summary>
+        /// Returns the current Projection.
+        /// If the map is not yet initialized then the result is undefined.
+        /// Listen to the projection_changed event and check its value to ensure it is not undefined.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Projection> GetProjection()
+        {
+            var id = Guid.NewGuid();
+            await _jsObjectRef.InvokeAsync("getProjection", id.ToString());
+            //projection is returned and created on js
+            var projection = new Projection(_jsObjectRef.JSRuntime, id);
+
+            return projection;
+        }
+
+        /// <summary>
         /// Pans the map by the minimum amount necessary to contain the given LatLngBounds.
         /// It makes no guarantee where on the map the bounds will be, except that the map will be panned to show as much of the bounds as possible inside {currentMapSizeInPx} - {padding}.
         /// </summary>
@@ -143,9 +159,9 @@ namespace GoogleMapsComponents.Maps
         /// The heading value is measured in degrees (clockwise) from cardinal direction North.
         /// </summary>
         /// <returns></returns>
-        public Task<float> GetHeading()
+        public Task<int> GetHeading()
         {
-            return _jsObjectRef.InvokeAsync<float>("getHeading");
+            return _jsObjectRef.InvokeAsync<int>("getHeading");
         }
 
         /// <summary>
@@ -153,7 +169,7 @@ namespace GoogleMapsComponents.Maps
         /// </summary>
         /// <param name="heading"></param>
         /// <returns></returns>
-        public Task SetHeading(float heading)
+        public Task SetHeading(int heading)
         {
             return _jsObjectRef.InvokeAsync("setHeading", heading);
         }
@@ -177,9 +193,9 @@ namespace GoogleMapsComponents.Maps
         /// See setTilt for details.
         /// </summary>
         /// <returns></returns>
-        public Task<float> GetTilt()
+        public Task<int> GetTilt()
         {
-            return _jsObjectRef.InvokeAsync<float>("getTilt");
+            return _jsObjectRef.InvokeAsync<int>("getTilt");
         }
 
         /// <summary>
@@ -192,17 +208,17 @@ namespace GoogleMapsComponents.Maps
         /// </summary>
         /// <param name="tilt"></param>
         /// <returns></returns>
-        public Task SetTilt(float tilt)
+        public Task SetTilt(int tilt)
         {
             return _jsObjectRef.InvokeAsync("setTilt", tilt);
         }
 
-        public Task<float> GetZoom()
+        public Task<double> GetZoom()
         {
-            return _jsObjectRef.InvokeAsync<float>("getZoom");
+            return _jsObjectRef.InvokeAsync<double>("getZoom");
         }
 
-        public Task SetZoom(float zoom)
+        public Task SetZoom(double zoom)
         {
             return _jsObjectRef.InvokeAsync("setZoom", zoom);
         }
