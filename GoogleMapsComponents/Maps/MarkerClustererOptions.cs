@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace GoogleMapsComponents.Maps
 {
-#nullable enable
     /// <summary>
     /// MarkerClustererOptions object used to define the properties that can be passed to a MarkerClusterer.
     /// </summary>
@@ -34,6 +33,7 @@ namespace GoogleMapsComponents.Maps
         /// <summary>
         /// The name of the CSS class defining general styles for the cluster markers.
         /// </summary>
+        [Obsolete("User RendererObjectName")]
         public string? ClusterClass { get; set; }
 
         /// <summary>
@@ -81,6 +81,7 @@ namespace GoogleMapsComponents.Maps
         /// elements whose properties are derived
         /// from the values for `ImagePath`, `ImageExtension`, and `ImageSizes`.
         /// </summary>
+        [Obsolete("Use RendererObjectName")]
         public List<MarkerClusterIconStyle>? Styles { get; set; }
 
         /// <summary>
@@ -110,8 +111,9 @@ namespace GoogleMapsComponents.Maps
         /// <summary>
         /// full js object name in dot notation from window, for the object containing the render function for js-markerclusterer to use in rendering cluster markers.
         /// js-markerclusterer only includes one renderer, DefaultRenderer which is a class and would need to be instantiated before it is referenced in this property.
+        /// https://googlemaps.github.io/js-markerclusterer/public/renderers/
+        /// https://github.com/rungwiroon/BlazorGoogleMaps/issues/202
         /// </summary>
         public string? RendererObjectName { get; set; }
     }
 }
-#nullable disable

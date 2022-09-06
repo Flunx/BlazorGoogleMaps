@@ -515,7 +515,22 @@ window.googleMapsObjectManager = {
                 console.log(e);
             }
 
-        } else {
+        } else if (functionToInvoke == "getPaths") {
+            // Polygon.getPaths returns nested MVCArray
+            // https://developers.google.com/maps/documentation/javascript/reference/polygon#Polygon.getPaths
+            try {
+                var paths = obj[functionToInvoke](...args2);
+                var nestedCoords = [];
+                // MVC array
+                paths.forEach(coords => {
+                    nestedCoords.push(coords.getArray());
+                });
+                return nestedCoords;
+            } catch (e) {
+                console.log(e);
+            }
+        }
+        else {
             var result = null;
             try {
                 result = obj[functionToInvoke](...args2);
@@ -739,7 +754,7 @@ window.googleMapsObjectManager = {
             return window._blazorGoogleMapsObjects[marker.guid];
         });
 
-        window._blazorGoogleMapsObjects[guid].addMarkers(originalMarkers, noDraw);
+        window._blazorGoogleMapsObjects[guid].removeMarkers(originalMarkers, noDraw);
     },
 
     addClusteringMarkers(guid, markers, noDraw) {

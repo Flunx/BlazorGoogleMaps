@@ -99,7 +99,7 @@ namespace GoogleMapsComponents.Maps
         /// </summary>
         public virtual async Task RemoveMarkers(IEnumerable<Marker> markers, bool noDraw = false)
         {
-            await _jsObjectRef.InvokeAsync("removeMarkers", markers, noDraw);
+            await _jsObjectRef.JSRuntime.InvokeVoidAsync("googleMapsObjectManager.removeClusteringMarkers", _jsObjectRef.Guid.ToString(), markers, noDraw);
         }
 
         /// <summary>
@@ -130,17 +130,27 @@ namespace GoogleMapsComponents.Maps
         /// Recalculates and redraws all the marker clusters from scratch. Call this after changing any properties.
         /// </summary>
         [Obsolete("Deprecated in favor of Redraw() to match latest js-markerclusterer")]
-        public virtual async Task Repaint()
+        public virtual Task Repaint()
         {
-            await Redraw();
+            return Render();
         }
 
         /// <summary>
         /// Recalculates and redraws all the marker clusters from scratch. Call this after changing any properties.
         /// </summary>
-        public virtual async Task Redraw()
+        [Obsolete("Deprecated in favor of Render() to match latest js-markerclusterer")]
+        public virtual Task Redraw()
         {
-            await _jsObjectRef.InvokeAsync("redraw");
+            return Render();
+        }
+
+        /// <summary>
+        /// https://googlemaps.github.io/js-markerclusterer/interfaces/Renderer.html#render
+        /// </summary>
+        /// <returns></returns>
+        public virtual Task Render()
+        {
+            return _jsObjectRef.InvokeAsync("render");
 
         }
 
