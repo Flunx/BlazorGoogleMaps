@@ -1,8 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace GoogleMapsComponents.Maps
 {
@@ -63,6 +59,7 @@ namespace GoogleMapsComponents.Maps
         /// Defaults to CENTER. 
         /// This property is not supported on Internet Explorer 8 and earlier.
         /// </summary>
+        [JsonConverter(typeof(EnumMemberConverter<StrokePosition>))]
         public StrokePosition? StrokePosition { get; set; }
 
         /// <summary>

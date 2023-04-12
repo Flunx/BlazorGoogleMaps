@@ -1,17 +1,12 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 namespace GoogleMapsComponents.Maps
 {
     /// <summary>
     /// The valid travel modes that can be specified in a DirectionsRequest as well as the travel modes returned in a DirectionsStep. 
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum TravelMode
     {
         /// <summary>

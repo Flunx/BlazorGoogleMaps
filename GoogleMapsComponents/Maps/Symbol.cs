@@ -1,9 +1,4 @@
-﻿using Newtonsoft.Json;
-using OneOf;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using OneOf;
 
 namespace GoogleMapsComponents.Maps
 {
@@ -13,7 +8,6 @@ namespace GoogleMapsComponents.Maps
     /// </summary>
     public class Symbol
     {
-        [JsonConverter(typeof(OneOfConverter))]
         public OneOf<SymbolPath, string> Path { get; set; }
         /// <summary>
         /// The position of the symbol relative to the marker or polyline. 

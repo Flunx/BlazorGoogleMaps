@@ -1,5 +1,4 @@
 ﻿using Microsoft.JSInterop;
-using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
@@ -15,7 +14,7 @@ namespace GoogleMapsComponents.Maps
         /// <summary>
         /// Creates a new instance of a DirectionsService that sends directions queries to Google servers.
         /// </summary>
-        public async static Task<DirectionsService> CreateAsync(IJSRuntime jsRuntime)
+        public static async Task<DirectionsService> CreateAsync(IJSRuntime jsRuntime)
         {
             var jsObjectRef = await JsObjectRef.CreateAsync(jsRuntime, "google.maps.DirectionsService");
 
@@ -43,7 +42,7 @@ namespace GoogleMapsComponents.Maps
         /// <param name="request"></param>
         /// <param name="directionsRequestOptions">Lets you specify which route response paths to opt out from clearing.</param>
         /// <returns></returns>
-        public async Task<DirectionsResult> Route(DirectionsRequest request, DirectionsRequestOptions directionsRequestOptions = null)
+        public async Task<DirectionsResult?> Route(DirectionsRequest request, DirectionsRequestOptions? directionsRequestOptions = null)
         {
             if (directionsRequestOptions == null)
             {
@@ -51,11 +50,12 @@ namespace GoogleMapsComponents.Maps
             }
 
             var response = await _jsObjectRef.InvokeAsync<string>(
-                "googleMapDirectionServiceFunctions.route",
+                "blazorGoogleMaps.directionService.route",
                 request, directionsRequestOptions);
+
             try
             {
-                var dirResult = JsonConvert.DeserializeObject<DirectionsResult>(response);
+                var dirResult = Helper.DeSerializeObject<DirectionsResult>(response);
                 return dirResult;
             }
             catch (Exception e)
@@ -63,7 +63,6 @@ namespace GoogleMapsComponents.Maps
                 Console.WriteLine("Error parsing DirectionsResult Object. Message: " + e.Message);
                 return null;
             }
-
         }
     }
 }

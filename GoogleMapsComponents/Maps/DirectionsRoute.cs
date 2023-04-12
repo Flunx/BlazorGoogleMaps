@@ -1,8 +1,5 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace GoogleMapsComponents.Maps
 {
@@ -23,11 +20,6 @@ namespace GoogleMapsComponents.Maps
         public string Copyrights { get; set; }
 
         /// <summary>
-        /// The total fare for the whole transit trip. Only applicable to transit requests.
-        /// </summary>
-        public TransitFare Fare { get; set; }
-
-        /// <summary>
         /// An array of DirectionsLegs, each of which contains information about the steps of which it is composed. 
         /// There will be one leg for each stopover waypoint or destination specified. 
         /// So a route with no stopover waypoints will contain one DirectionsLeg and a route with one stopover waypoint will contain two.
@@ -38,15 +30,20 @@ namespace GoogleMapsComponents.Maps
         /// An array of LatLngs representing the entire course of this route. 
         /// The path is simplified in order to make it suitable in contexts where a small number of vertices is required (such as Static Maps API URLs).
         /// </summary>
-        [JsonProperty("overview_path")]
+        [JsonPropertyName("overview_path")]
         public IEnumerable<LatLngLiteral> OverviewPath { get; set; }
 
         /// <summary>
         /// An encoded polyline representation of the route in overview_path. 
         /// This polyline is an approximate (smoothed) path of the resulting directions.
         /// </summary>
-        [JsonProperty("overview_polyline")]
+        [JsonPropertyName("overview_polyline")]
         public string OverviewPolyline { get; set; }
+
+        /// <summary>
+        /// Contains a short textual description for the route, suitable for naming and disambiguating the route from alternatives.
+        /// </summary>
+        public string Summary { get; set; }
 
         /// <summary>
         /// Warnings to be displayed when showing these directions.
@@ -66,5 +63,10 @@ namespace GoogleMapsComponents.Maps
         ///  If any of the input waypoints has stopover set to false, this field will be empty, since route optimization is not available for such queries.
         /// </summary>
         public List<int> WaypointOrder { get; set; }
+
+        /// <summary>
+        /// The total fare for the whole transit trip. Only applicable to transit requests.
+        /// </summary>
+        public TransitFare Fare { get; set; }
     }
 }

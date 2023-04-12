@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace GoogleMapsComponents.Maps
 {
@@ -16,6 +14,7 @@ namespace GoogleMapsComponents.Maps
         /// <summary>
         /// An array of DirectionsGeocodedWaypoints, each of which contains information about the geocoding of origin, destination and waypoints.
         /// </summary>
+        [JsonPropertyName("geocoded_waypoints")]
         public IEnumerable<DirectionsGeocodedWaypoint> GeoCodedWaypoints { get; set; }
 
         /// <summary>

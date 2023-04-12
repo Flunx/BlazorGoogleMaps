@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GoogleMapsComponents.Maps.Places
+﻿namespace GoogleMapsComponents.Maps.Places
 {
-    public class FindPlaceFromQueryRequest
+    public class FindPlaceFromQueryRequest : FindPlaceFromBase
     {
+        /// <summary>
+        /// The request's query. For example, the name or address of a place.
+        /// </summary>
+        public string Query { get; set; } = default!;
     }
 }

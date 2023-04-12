@@ -1,9 +1,9 @@
 ﻿using Microsoft.JSInterop;
-using Newtonsoft.Json;
 using OneOf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GoogleMapsComponents
@@ -122,7 +122,7 @@ namespace GoogleMapsComponents
             var jsObjectRef = new JsObjectRef(jsRuntime, guid);
 
             await jsRuntime.MyInvokeAsync<object>(
-                "googleMapsObjectManager.createObject",
+                "blazorGoogleMaps.objectManager.createObject",
                 new object[] { guid.ToString(), functionName }
                     .Concat(args).ToArray()
             );
@@ -138,7 +138,7 @@ namespace GoogleMapsComponents
             Dictionary<Guid, JsObjectRef> jsObjectRefs = dictArgs.ToDictionary(e => e.Key, e => new JsObjectRef(jsRuntime, e.Key));
 
             await jsRuntime.MyInvokeAsync<object>(
-                "googleMapsObjectManager.createMultipleObject",
+                "blazorGoogleMaps.objectManager.createMultipleObject",
                 new object[] { dictArgs.Select(e => e.Key.ToString()).ToList(), functionName }
                     .Concat(dictArgs.Values).ToArray()
             );
@@ -154,7 +154,7 @@ namespace GoogleMapsComponents
         public ValueTask<object> DisposeAsync()
         {
             return _jsRuntime.InvokeAsync<object>(
-                "googleMapsObjectManager.disposeObject",
+                "blazorGoogleMaps.objectManager.disposeObject",
                 _guid.ToString()
             );
         }
@@ -162,15 +162,15 @@ namespace GoogleMapsComponents
         public ValueTask<object> DisposeMultipleAsync(List<Guid> guids)
         {
             return _jsRuntime.InvokeAsync<object>(
-                "googleMapsObjectManager.disposeMultipleObjects",
+                "blazorGoogleMaps.objectManager.disposeMultipleObjects",
                 guids.Select(e => e.ToString()).ToList()
             );
         }
 
-        public Task InvokeAsync(string functionName, params object?[] args)
+        public async Task InvokeAsync(string functionName, params object?[] args)
         {
-            return _jsRuntime.MyInvokeAsync(
-                "googleMapsObjectManager.invoke",
+            await _jsRuntime.MyInvokeAsync(
+                "blazorGoogleMaps.objectManager.invoke",
                 new object?[] { _guid.ToString(), functionName }
                     .Concat(args).ToArray()
             );
@@ -179,7 +179,7 @@ namespace GoogleMapsComponents
         public Task InvokeMultipleAsync(string functionName, Dictionary<Guid, object> dictArgs)
         {
             return _jsRuntime.MyInvokeAsync(
-                "googleMapsObjectManager.invokeMultiple",
+                "blazorGoogleMaps.objectManager.invokeMultiple",
                 new object[] { dictArgs.Select(e => e.Key.ToString()).ToList(), functionName }
                     .Concat(dictArgs.Values).ToArray()
             );
@@ -188,7 +188,7 @@ namespace GoogleMapsComponents
         public Task AddMultipleListenersAsync(string eventName, Dictionary<Guid, object> dictArgs)
         {
             return _jsRuntime.MyAddListenerAsync(
-                "googleMapsObjectManager.addMultipleListeners",
+                "blazorGoogleMaps.objectManager.addMultipleListeners",
                 new object[] { dictArgs.Select(e => e.Key.ToString()).ToList(), eventName }
                     .Concat(dictArgs.Values).ToArray()
             );
@@ -197,7 +197,7 @@ namespace GoogleMapsComponents
         public Task<T> InvokeAsync<T>(string functionName, params object[] args)
         {
             return _jsRuntime.MyInvokeAsync<T>(
-                "googleMapsObjectManager.invoke",
+                "blazorGoogleMaps.objectManager.invoke",
                 new object[] { _guid.ToString(), functionName }
                     .Concat(args).ToArray()
             );
@@ -206,7 +206,7 @@ namespace GoogleMapsComponents
         public Task<Dictionary<string, T>> InvokeMultipleAsync<T>(string functionName, Dictionary<Guid, object> dictArgs)
         {
             return _jsRuntime.MyInvokeAsync<Dictionary<string, T>>(
-                "googleMapsObjectManager.invokeMultiple",
+                "blazorGoogleMaps.objectManager.invokeMultiple",
                 new object[] { dictArgs.Select(e => e.Key.ToString()).ToList(), functionName }
                     .Concat(dictArgs.Values).ToArray()
             );
@@ -217,17 +217,18 @@ namespace GoogleMapsComponents
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="U"></typeparam>
-        /// <param name="jsRuntime"></param>
-        /// <param name="identifier"></param>
+        /// <param name="functionName"></param>
         /// <param name="args"></param>
         /// <returns>Discriminated union of specified types</returns>
-        public Task<OneOf<T, U>> InvokeAsync<T, U>(string functionName, params object[] args)
+        public async Task<OneOf<T, U>> InvokeAsync<T, U>(string functionName, params object[] args)
         {
-            return _jsRuntime.MyInvokeAsync<T, U>(
-                "googleMapsObjectManager.invoke",
+            var result = await _jsRuntime.MyInvokeAsync<T, U>(
+                "blazorGoogleMaps.objectManager.invoke",
                 new object[] { _guid.ToString(), functionName }
                     .Concat(args).ToArray()
             );
+
+            return result;
         }
 
         /// <summary>
@@ -236,14 +237,13 @@ namespace GoogleMapsComponents
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="U"></typeparam>
         /// <typeparam name="V"></typeparam>
-        /// <param name="jsRuntime"></param>
-        /// <param name="identifier"></param>
+        /// <param name="functionName"></param>
         /// <param name="args"></param>
         /// <returns>Discriminated union of specified types</returns>
         public Task<OneOf<T, U, V>> InvokeAsync<T, U, V>(string functionName, params object[] args)
         {
             return _jsRuntime.MyInvokeAsync<T, U, V>(
-                "googleMapsObjectManager.invoke",
+                "blazorGoogleMaps.objectManager.invoke",
                 new object[] { _guid.ToString(), functionName }
                     .Concat(args).ToArray()
             );
@@ -252,7 +252,7 @@ namespace GoogleMapsComponents
         public async Task<JsObjectRef> InvokeWithReturnedObjectRefAsync(string functionName, params object[] args)
         {
             var guid = await _jsRuntime.MyInvokeAsync<string>(
-                "googleMapsObjectManager.invokeWithReturnedObjectRef",
+                "blazorGoogleMaps.objectManager.invokeWithReturnedObjectRef",
                 new object[] { _guid.ToString(), functionName }
                     .Concat(args).ToArray()
             );
@@ -263,7 +263,7 @@ namespace GoogleMapsComponents
         //public async Task<List<JsObjectRef>> InvokeMultipleWithReturnedObjectRefAsync(string functionName, string eventname, Dictionary<Guid, object> dictArgs)
         //{
         //    List<string> guids = await _jsRuntime.MyInvokeAsync<List<string>>(
-        //        "googleMapsObjectManager.invokeMultipleWithReturnedObjectRef",
+        //        "blazorGoogleMaps.objectManager.invokeMultipleWithReturnedObjectRef",
         //        new object[] { dictArgs.Select(e => e.Key.ToString()).ToList(), functionName, eventname }
         //            .Concat(dictArgs.Values).ToArray()
         //    );
@@ -274,7 +274,7 @@ namespace GoogleMapsComponents
         public Task<T> GetValue<T>(string propertyName)
         {
             return _jsRuntime.MyInvokeAsync<T>(
-                "googleMapsObjectManager.readObjectPropertyValue",
+                "blazorGoogleMaps.objectManager.readObjectPropertyValue",
                  _guid.ToString(),
                  propertyName);
         }
@@ -282,7 +282,7 @@ namespace GoogleMapsComponents
         public async Task<JsObjectRef> GetObjectReference(string propertyName)
         {
             var guid = await _jsRuntime.MyInvokeAsync<string>(
-                "googleMapsObjectManager.readObjectPropertyValueWithReturnedObjectRef",
+                "blazorGoogleMaps.objectManager.readObjectPropertyValueWithReturnedObjectRef",
                  _guid.ToString(),
                  propertyName);
 
@@ -292,7 +292,7 @@ namespace GoogleMapsComponents
         public Task<T> GetMappedValue<T>(string propertyName, params string[] mappedNames)
         {
             return _jsRuntime.MyInvokeAsync<T>(
-                "googleMapsObjectManager.readObjectPropertyValueAndMapToArray",
+                "blazorGoogleMaps.objectManager.readObjectPropertyValueAndMapToArray",
                  _guid.ToString(),
                  propertyName, mappedNames);
         }

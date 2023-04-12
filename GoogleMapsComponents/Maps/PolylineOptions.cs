@@ -1,8 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace GoogleMapsComponents.Maps
 {
@@ -11,18 +7,6 @@ namespace GoogleMapsComponents.Maps
     /// </summary>
     public class PolylineOptions : ListableEntityOptionsBase
     {
-        /// <summary>
-        /// Indicates whether this Polyline handles mouse events. 
-        /// Defaults to true.
-        /// </summary>
-        public new bool? Clickable { get; set; }
-
-        /// <summary>
-        /// If set to true, the user can drag this shape over the map. 
-        /// The geodesic property defines the mode of dragging. Defaults to false.
-        /// </summary>
-        public new bool? Draggable { get; set; }
-
         /// <summary>
         /// If set to true, the user can edit this shape by dragging the control points shown at the vertices and on each segment. 
         /// Defaults to false.
@@ -40,12 +24,6 @@ namespace GoogleMapsComponents.Maps
         /// The icons to be rendered along the polyline.
         /// </summary>
         public IEnumerable<IconSequence> Icons { get; set; }
-
-        /// <summary>
-        /// Map on which to display Polyline.
-        /// </summary>
-        [JsonConverter(typeof(JsObjectRefConverter<Map>))]
-        public new Map Map { get; set; }
 
         /// <summary>
         /// The ordered sequence of coordinates of the Polyline.
@@ -66,15 +44,5 @@ namespace GoogleMapsComponents.Maps
         /// The stroke width in pixels.
         /// </summary>
         public int? StrokeWeight { get; set; }
-
-        /// <summary>
-        /// Whether this polyline is visible on the map. Defaults to true.
-        /// </summary>
-        public new bool? Visible { get; set; }
-
-        /// <summary>
-        /// The zIndex compared to other polys.
-        /// </summary>
-        public new int? ZIndex { get; set; }
     }
 }

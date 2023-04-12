@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace GoogleMapsComponents.Maps
 {
     public abstract class ListableEntityOptionsBase
     {
         /// <summary>
-        /// Indicates whether Entity handles mouse events. 
+        /// Indicates whether Entity handles mouse events.
         /// Defaults to true.
         /// </summary>
         public bool? Clickable { get; set; }
 
         /// <summary>
-        /// If set to true, the user can drag Entity over the map. 
+        /// If set to true, the user can drag Entity over the map.
         /// Defaults to false.
         /// </summary>
         public bool? Draggable { get; set; }

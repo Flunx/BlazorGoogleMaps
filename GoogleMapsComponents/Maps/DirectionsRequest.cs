@@ -1,9 +1,6 @@
-﻿using Newtonsoft.Json;
-using OneOf;
-using System;
+﻿using OneOf;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace GoogleMapsComponents.Maps
 {
@@ -34,14 +31,13 @@ namespace GoogleMapsComponents.Maps
         /// Location of destination. This can be specified as either a string to be geocoded, or a LatLng, or a Place. 
         /// Required.
         /// </summary>
-        [JsonConverter(typeof(OneOfConverter))]
         public OneOf<string, LatLngLiteral, Place> Destination { get; set; }
 
         /// <summary>
         /// Settings that apply only to requests where travelMode is DRIVING. 
         /// This object will have no effect for other travel modes.
         /// </summary>
-        public DrivingOptions DrivingOptions { get; set; }
+        public DrivingOptions? DrivingOptions { get; set; }
 
         /// <summary>
         /// If set to true, the DirectionsService will attempt to re-order the supplied intermediate waypoints to minimize overall cost of the route. 
@@ -54,7 +50,6 @@ namespace GoogleMapsComponents.Maps
         /// This can be specified as either a string to be geocoded, or a LatLng, or a Place. 
         /// Required.
         /// </summary>
-        [JsonConverter(typeof(OneOfConverter))]
         public OneOf<string, LatLngLiteral, Place> Origin { get; set; }
 
         /// <summary>
@@ -67,18 +62,19 @@ namespace GoogleMapsComponents.Maps
         /// Region code used as a bias for geocoding requests. 
         /// Optional.
         /// </summary>
-        public string Region { get; set; }
+        public string? Region { get; set; }
 
         /// <summary>
         /// Settings that apply only to requests where travelMode is TRANSIT. 
         /// This object will have no effect for other travel modes.
         /// </summary>
-        public TransitOptions TransitOptions { get; set; }
+        public TransitOptions? TransitOptions { get; set; }
 
         /// <summary>
         /// Type of routing requested. 
         /// Required.
         /// </summary>
+        [JsonConverter(typeof(EnumMemberConverter<TravelMode>))]
         public TravelMode TravelMode { get; set; }
 
         /// <summary>
@@ -92,6 +88,6 @@ namespace GoogleMapsComponents.Maps
         /// See the developer's guide for the maximum number of waypoints allowed. 
         /// Waypoints are not supported for transit directions. Optional.
         /// </summary>
-        public IEnumerable<DirectionsWaypoint> Waypoints { get; set; }
+        public IEnumerable<DirectionsWaypoint>? Waypoints { get; set; }
     }
 }

@@ -1,8 +1,6 @@
 ﻿using OneOf;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace GoogleMapsComponents.Maps.Data
@@ -10,18 +8,27 @@ namespace GoogleMapsComponents.Maps.Data
     /// <summary>
     /// A feature has a geometry, an id, and a set of properties
     /// </summary>
-    public class Feature : IEnumerable<string>
+    public class Feature
     {
+        //private readonly FeatureOptions? _options;
+
+        /// <summary>
+        /// Needed for json serializations
+        /// </summary>
+        public Feature()
+        {
+        }
+
         /// <summary>
         /// Constructs a Feature with the given options.
         /// </summary>
         /// <param name="options"></param>
-        public Feature(FeatureOptions options = null)
+        public Feature(FeatureOptions? options = null)
         {
-            throw new NotImplementedException();
+            //_options = options;
         }
 
-        public IEnumerable<KeyValuePair<string, object>> Properties { get; private set; }
+        public IEnumerable<IDictionary<string, object>> Properties { get; set; }
 
         /// <summary>
         /// Repeatedly invokes the given function, passing a property value and name on each invocation. 
@@ -99,9 +106,12 @@ namespace GoogleMapsComponents.Maps.Data
             throw new NotImplementedException();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
+        //IEnumerator IEnumerable.GetEnumerator()
+        //{
+        //    foreach (var keyValuePair in Properties)
+        //    {
+        //        yield return JsonConvert.SerializeObject(keyValuePair).Replace("\\\\", "");
+        //    }
+        //}
     }
 }

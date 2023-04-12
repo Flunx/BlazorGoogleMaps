@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GoogleMapsComponents.Maps.Extension
@@ -141,7 +140,6 @@ namespace GoogleMapsComponents.Maps.Extension
         public virtual async Task RemoveAllAsync()
         {
             await RemoveMultipleAsync(BaseListableEntities.Keys.ToList());
-
         }
 
         /// <summary>
@@ -153,7 +151,6 @@ namespace GoogleMapsComponents.Maps.Extension
         {
             if ((filterKeys != null) && (filterKeys.Count > 0))
             {
-
                 List<string> foundKeys = BaseListableEntities.Keys.Intersect(filterKeys).ToList();
                 if (foundKeys.Count > 0)
                 {
@@ -169,8 +166,6 @@ namespace GoogleMapsComponents.Maps.Extension
                     }
                 }
             }
-
-
         }
 
         public virtual async Task RemoveMultipleAsync(List<Guid> guids)
@@ -197,7 +192,7 @@ namespace GoogleMapsComponents.Maps.Extension
         //Find the eventual match between required keys (if any) and yet stored markers key (if any)
         //If filterKeys is null or empty all keys are returned
         //Otherwise only eventually yet stored marker keys that matches with filterKeys
-        protected virtual List<string> ComputeMathingKeys(List<string> filterKeys = null)
+        protected virtual List<string> ComputeMathingKeys(List<string>? filterKeys = null)
         {
             List<string> matchingKeys;
 
@@ -207,7 +202,7 @@ namespace GoogleMapsComponents.Maps.Extension
             }
             else
             {
-                matchingKeys = BaseListableEntities.Keys.Where(e => filterKeys.Contains(e)).ToList();
+                matchingKeys = BaseListableEntities.Keys.Where(filterKeys.Contains).ToList();
             }
 
             return matchingKeys;

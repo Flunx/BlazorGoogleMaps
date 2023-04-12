@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Microsoft.JSInterop;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.JSInterop;
 // ReSharper disable UnusedMember.Global
 
 namespace GoogleMapsComponents.Maps
@@ -30,7 +30,7 @@ namespace GoogleMapsComponents.Maps
 
             var guid = Guid.NewGuid();
             var jsObjectRef = new JsObjectRef(jsRuntime, guid);
-            await jsRuntime.InvokeVoidAsync("googleMapsObjectManager.createClusteringMarkers", guid.ToString(), map.Guid.ToString(), markers, options);
+            await jsRuntime.InvokeVoidAsync("blazorGoogleMaps.objectManager.createClusteringMarkers", guid.ToString(), map.Guid.ToString(), markers, options);
             var obj = new MarkerClustering(jsObjectRef, map, markers);
             return obj;
         }
@@ -55,7 +55,7 @@ namespace GoogleMapsComponents.Maps
                 return;
             }
 
-            await _jsObjectRef.JSRuntime.InvokeVoidAsync("googleMapsObjectManager.addClusteringMarkers", _jsObjectRef.Guid.ToString(), markers, noDraw);
+            await _jsObjectRef.JSRuntime.InvokeVoidAsync("blazorGoogleMaps.objectManager.addClusteringMarkers", _jsObjectRef.Guid.ToString(), markers, noDraw);
         }
 
         public virtual async Task<MapEventListener> AddListener(string eventName, Action handler)
@@ -99,7 +99,7 @@ namespace GoogleMapsComponents.Maps
         /// </summary>
         public virtual async Task RemoveMarkers(IEnumerable<Marker> markers, bool noDraw = false)
         {
-            await _jsObjectRef.JSRuntime.InvokeVoidAsync("googleMapsObjectManager.removeClusteringMarkers", _jsObjectRef.Guid.ToString(), markers, noDraw);
+            await _jsObjectRef.JSRuntime.InvokeVoidAsync("blazorGoogleMaps.objectManager.removeClusteringMarkers", _jsObjectRef.Guid.ToString(), markers, noDraw);
         }
 
         /// <summary>
@@ -126,23 +126,19 @@ namespace GoogleMapsComponents.Maps
             await _map.FitBounds(newBounds, padding);
         }
 
-        /// <summary>
-        /// Recalculates and redraws all the marker clusters from scratch. Call this after changing any properties.
-        /// </summary>
-        [Obsolete("Deprecated in favor of Redraw() to match latest js-markerclusterer")]
-        public virtual Task Repaint()
-        {
-            return Render();
-        }
 
-        /// <summary>
-        /// Recalculates and redraws all the marker clusters from scratch. Call this after changing any properties.
-        /// </summary>
-        [Obsolete("Deprecated in favor of Render() to match latest js-markerclusterer")]
-        public virtual Task Redraw()
-        {
-            return Render();
-        }
+        //[Obsolete("Deprecated in favor of Redraw() to match latest js-markerclusterer")]
+        //public virtual Task Repaint()
+        //{
+        //    return Render();
+        //}
+
+
+        //[Obsolete("Deprecated in favor of Render() to match latest js-markerclusterer")]
+        //public virtual Task Redraw()
+        //{
+        //    return Render();
+        //}
 
         /// <summary>
         /// https://googlemaps.github.io/js-markerclusterer/interfaces/Renderer.html#render

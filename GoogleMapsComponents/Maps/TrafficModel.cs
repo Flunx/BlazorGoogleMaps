@@ -1,9 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace GoogleMapsComponents.Maps
 {
@@ -12,7 +7,7 @@ namespace GoogleMapsComponents.Maps
     /// Specified as part of a DirectionsRequest or DistanceMatrixRequest. 
     /// </summary>
 
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum TrafficModel
     {
         /// <summary>

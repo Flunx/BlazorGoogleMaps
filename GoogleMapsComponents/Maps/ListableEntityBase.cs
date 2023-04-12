@@ -1,9 +1,7 @@
-﻿using Microsoft.JSInterop;
+﻿using OneOf;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using OneOf;
 
 namespace GoogleMapsComponents.Maps
 {
@@ -15,7 +13,7 @@ namespace GoogleMapsComponents.Maps
         public readonly Dictionary<string, List<MapEventListener>> EventListeners;
 
         public Guid Guid => _jsObjectRef.Guid;
-        
+
         internal ListableEntityBase(JsObjectRef jsObjectRef)
         {
             _jsObjectRef = jsObjectRef;
@@ -90,13 +88,18 @@ namespace GoogleMapsComponents.Maps
 
         public virtual async Task ClearListeners(string eventName)
         {
-            if (EventListeners.ContainsKey(eventName))
+            if (EventListeners.TryGetValue(eventName, out var listeners))
             {
-                await _jsObjectRef.InvokeAsync("clearListeners", eventName);
+                foreach (var listener in listeners)
+                {
+                    await listener.RemoveAsync();
+                }
+                //await _jsObjectRef.InvokeAsync("clearListeners", eventName);
 
                 //IMHO is better preserving the knowledge that Marker had some EventListeners attached to "eventName" in the past
                 //so, instead to clear the list and remove the key from dictionary, I prefer to leave the key with an empty list
                 EventListeners[eventName].Clear();
+                //EventListeners.Remove(eventName);
             }
         }
 

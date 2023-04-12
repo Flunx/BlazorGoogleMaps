@@ -1,22 +1,32 @@
 ﻿using GoogleMapsComponents.Maps;
+using GoogleMapsComponents.Serialization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using OneOf;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GoogleMapsComponents
 {
     internal static class Helper
     {
+        private static readonly JsonSerializerOptions Options = new JsonSerializerOptions()
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+
+        static Helper()
+        {
+            Options.Converters.Add(new OneOfConverterFactory());
+            Options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+        }
+
         internal static Task MyInvokeAsync(
             this IJSRuntime jsRuntime,
             string identifier,
@@ -44,22 +54,51 @@ namespace GoogleMapsComponents
             foreach (var name in Enum.GetNames(enumType))
             {
                 var enumMemberAttribute = ((EnumMemberAttribute[])enumType.GetField(name).GetCustomAttributes(typeof(EnumMemberAttribute), true)).Single();
-                if (enumMemberAttribute.Value == str) return (T)Enum.Parse(enumType, name);
+                if (enumMemberAttribute.Value == str)
+                {
+                    return (T)Enum.Parse(enumType, name);
+                }
             }
 
             //throw exception or whatever handling you want
             return default;
         }
-        private static string SerializeObject(object obj)
+
+        public static object? DeSerializeObject(JsonElement json, Type type)
         {
-            var value = JsonConvert.SerializeObject(
-                        obj,
-                        Formatting.None,
-                        new JsonSerializerSettings
-                        {
-                            NullValueHandling = NullValueHandling.Ignore,
-                            ContractResolver = new CamelCasePropertyNamesContractResolver()
-                        });
+            var obj = json.Deserialize(type, Options);
+            return obj;
+        }
+
+        public static object? DeSerializeObject(string json, Type type)
+        {
+            var obj = JsonSerializer.Deserialize(json, type, Options);
+            return obj;
+        }
+
+        public static TObject DeSerializeObject<TObject>(string json)
+        {
+            var value = JsonSerializer.Deserialize<TObject>(json, Options);
+            return value;
+        }
+
+        public static string SerializeObject(object obj)
+        {
+            var opt = new JsonSerializerOptions();
+            opt.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            opt.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            opt.Converters.Add(new OneOfConverterFactory());
+            opt.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+
+            var value = JsonSerializer.Serialize(
+                obj,
+                Options);
+            //Formatting.None,
+            //new JsonSerializerSettings
+            //{
+            //    NullValueHandling = NullValueHandling.Ignore,
+            //    ContractResolver = new CamelCasePropertyNamesContractResolver()
+            //});
 
             return value;
         }
@@ -132,14 +171,13 @@ namespace GoogleMapsComponents
             string identifier,
             params object?[] args)
         {
-
             var jsFriendlyArgs = MakeArgJsFriendly(jsRuntime, args);
 
             if (typeof(IJsObjectRef).IsAssignableFrom(typeof(TRes)))
             {
                 var guid = await jsRuntime.InvokeAsync<string>(identifier, jsFriendlyArgs);
 
-                return (TRes)JsObjectRefInstances.GetInstance(guid);
+                return guid == null ? default : (TRes)JsObjectRefInstances.GetInstance(guid);
             }
 
             if (typeof(IOneOf).IsAssignableFrom(typeof(TRes)))
@@ -151,19 +189,33 @@ namespace GoogleMapsComponents
                 {
                     try
                     {
-                        var jo = JObject.Parse(someText);
-
-                        if (jo.ContainsKey("dotnetTypeName"))
+                        var jo = JsonDocument.Parse(someText);
+                        var typeToken = jo.RootElement.GetProperty("dotnetTypeName").GetString();
+                        if (typeToken != null)
                         {
-                            var typeName = jo.SelectToken("dotnetTypeName").Value<string>();
-                            var asm = typeof(Map).Assembly;
-                            var type = asm.GetType(typeName);
-                            result = jo.ToObject(type);
+                            result = DeSerializeObject<TRes>(typeToken);
+                            //var typeName = typeToken.Value<string>();
+                            //var asm = typeof(Map).Assembly;
+                            //var type = asm.GetType(typeName);
+                            //result = jo.ToObject(type);
                         }
                         else
                         {
                             result = someText;
                         }
+                        //var jo = JsonNode.Parse(someText);
+                        //var typeToken = jo.SelectToken("dotnetTypeName");
+                        //if (typeToken != null)
+                        //{
+                        //    var typeName = typeToken.Value<string>();
+                        //    var asm = typeof(Map).Assembly;
+                        //    var type = asm.GetType(typeName);
+                        //    result = jo.ToObject(type);
+                        //}
+                        //else
+                        //{
+                        //    result = someText;
+                        //}
                     }
                     catch
                     {
@@ -195,21 +247,24 @@ namespace GoogleMapsComponents
             string identifier,
             params object[] args)
         {
-            var resultObject = await jsRuntime.MyInvokeAsync<string>(identifier, args);
+            var resultObject = await jsRuntime.MyInvokeAsync<object>(identifier, args);
             object result = null;
 
             if (resultObject is string someText)
             {
                 try
                 {
-                    var jo = JObject.Parse(someText);
-
-                    if (jo.ContainsKey("dotnetTypeName"))
+                    //var jo = JObject.Parse(someText);
+                    //var typeToken = jo.SelectToken("dotnetTypeName");
+                    var jo = JsonDocument.Parse(someText);
+                    var typeToken = jo.RootElement.GetProperty("dotnetTypeName").GetString();
+                    if (typeToken != null)
                     {
-                        var typeName = jo.SelectToken("dotnetTypeName").Value<string>();
-                        var asm = typeof(Map).Assembly;
-                        var type = asm.GetType(typeName);
-                        result = jo.ToObject(type);
+                        result = DeSerializeObject<object>(typeToken);
+                        //var typeName = typeToken.Value<string>();
+                        //var asm = typeof(Map).Assembly;
+                        //var type = asm.GetType(typeName);
+                        //result = jo.ToObject(type);
                     }
                     else
                     {
@@ -222,6 +277,12 @@ namespace GoogleMapsComponents
                 }
             }
 
+            if (resultObject is JsonElement jsonElement)
+            {
+
+
+            }
+
             return result;
         }
 
@@ -230,7 +291,6 @@ namespace GoogleMapsComponents
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="U"></typeparam>
-        /// <typeparam name="V"></typeparam>
         /// <param name="jsRuntime"></param>
         /// <param name="identifier"></param>
         /// <param name="args"></param>
@@ -240,7 +300,21 @@ namespace GoogleMapsComponents
             string identifier,
             params object[] args)
         {
-            var result = await jsRuntime.InvokeAsync(identifier, args);
+            var resultObject = await jsRuntime.MyInvokeAsync<object>(identifier, args);
+            object? result = null;
+
+            if (resultObject is JsonElement jsonElement)
+            {
+                var json = jsonElement.GetString();
+                var propArray = Helper.DeSerializeObject<Dictionary<string, object>>(json);
+                if (propArray.TryGetValue("dotnetTypeName", out var typeName))
+                {
+                    var asm = typeof(Map).Assembly;
+                    var typeNameString = typeName.ToString();
+                    var type = asm.GetType(typeNameString);
+                    result = Helper.DeSerializeObject(json, type);
+                }
+            }
 
             switch (result)
             {
@@ -258,6 +332,7 @@ namespace GoogleMapsComponents
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="U"></typeparam>
+        /// <typeparam name="V"></typeparam>
         /// <param name="jsRuntime"></param>
         /// <param name="identifier"></param>
         /// <param name="args"></param>
@@ -267,7 +342,21 @@ namespace GoogleMapsComponents
             string identifier,
             params object[] args)
         {
-            var result = await jsRuntime.InvokeAsync(identifier, args);
+            var resultObject = await jsRuntime.MyInvokeAsync<object>(identifier, args);
+            object? result = null;
+
+            if (resultObject is JsonElement jsonElement)
+            {
+                var json = jsonElement.GetString();
+                var propArray = Helper.DeSerializeObject<Dictionary<string, object>>(json);
+                if (propArray.TryGetValue("dotnetTypeName", out var typeName))
+                {
+                    var asm = typeof(Map).Assembly;
+                    var typeNameString = typeName.ToString();
+                    var type = asm.GetType(typeNameString);
+                    result = Helper.DeSerializeObject(json, type);
+                }
+            }
 
             switch (result)
             {
@@ -288,7 +377,15 @@ namespace GoogleMapsComponents
             foreach (var name in Enum.GetNames(enumType))
             {
                 var enumMemberAttribute = ((EnumMemberAttribute[])enumType.GetField(name).GetCustomAttributes(typeof(EnumMemberAttribute), true)).Single();
-                if (enumMemberAttribute.Value == str) return (T)Enum.Parse(enumType, name);
+                if (enumMemberAttribute.Value == str)
+                {
+                    return (T)Enum.Parse(enumType, name);
+                }
+
+                if (string.Equals(name, str, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return (T)Enum.Parse(enumType, name);
+                }
             }
 
             //throw exception or whatever handling you want
