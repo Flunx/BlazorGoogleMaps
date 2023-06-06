@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using GoogleMapsComponents.Maps.Extension;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GoogleMapsComponents.Maps.Places
 {
-    public class Autocomplete : IDisposable
+    public class Autocomplete : EventEntityBase
     {
-        private readonly JsObjectRef _jsObjectRef;
-
-        public async static Task<Autocomplete> CreateAsync(IJSRuntime jsRuntime, ElementReference inputField, AutocompleteOptions opts = null)
+        public static async Task<Autocomplete> CreateAsync(IJSRuntime jsRuntime, ElementReference inputField, AutocompleteOptions? opts = null)
         {
             var jsObjectRef = await JsObjectRef.CreateAsync(jsRuntime, "google.maps.places.Autocomplete", inputField, opts);
             var obj = new Autocomplete(jsObjectRef);
@@ -18,14 +16,8 @@ namespace GoogleMapsComponents.Maps.Places
             return obj;
         }
 
-        private Autocomplete(JsObjectRef jsObjectRef)
+        private Autocomplete(JsObjectRef jsObjectRef) : base(jsObjectRef)
         {
-            _jsObjectRef = jsObjectRef;
-        }
-
-        public void Dispose()
-        {
-            _jsObjectRef?.Dispose();
         }
 
         /// <summary>
@@ -93,14 +85,6 @@ namespace GoogleMapsComponents.Maps.Places
         public Task SetTypes(IEnumerable<string> types)
         {
             return _jsObjectRef.InvokeAsync("setTypes", types);
-        }
-
-        public async Task<MapEventListener> AddListener(string eventName, Action handler)
-        {
-            var listenerRef = await _jsObjectRef.InvokeWithReturnedObjectRefAsync(
-                "addListener", eventName, handler);
-
-            return new MapEventListener(listenerRef);
         }
     }
 }

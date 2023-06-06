@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using GoogleMapsComponents.Maps.Extension;
 using Microsoft.JSInterop;
+using System;
+using System.Threading.Tasks;
 
 namespace GoogleMapsComponents.Maps
 {
-    public class GroundOverlay : IDisposable, IJsObjectRef
+    public class GroundOverlay : EventEntityBase, IJsObjectRef
     {
-        private readonly JsObjectRef _jsObjectRef;
-
-        public readonly Dictionary<string, List<MapEventListener>> EventListeners;
-
         public Guid Guid => _jsObjectRef.Guid;
 
-        public async static Task<GroundOverlay> CreateAsync(IJSRuntime jsRuntime, string url, LatLngBoundsLiteral bounds, GroundOverlayOptions opts = null)
+        public static async Task<GroundOverlay> CreateAsync(IJSRuntime jsRuntime, string url, LatLngBoundsLiteral bounds, GroundOverlayOptions? opts = null)
         {
             var jsObjectRef = await JsObjectRef.CreateAsync(jsRuntime, "google.maps.GroundOverlay", url, bounds, opts);
             var obj = new GroundOverlay(jsObjectRef);
@@ -21,24 +17,8 @@ namespace GoogleMapsComponents.Maps
             return obj;
         }
 
-        internal GroundOverlay(JsObjectRef jsObjectRef)
+        internal GroundOverlay(JsObjectRef jsObjectRef) : base(jsObjectRef)
         {
-            _jsObjectRef = jsObjectRef;
-            EventListeners = new Dictionary<string, List<MapEventListener>>();
-        }
-
-        public async Task<MapEventListener> AddListener(string eventName, Action handler)
-        {
-            JsObjectRef listenerRef = await _jsObjectRef.InvokeWithReturnedObjectRefAsync("addListener", eventName, handler);
-            MapEventListener eventListener = new MapEventListener(listenerRef);
-
-            if (!EventListeners.ContainsKey(eventName))
-            {
-                EventListeners.Add(eventName, new List<MapEventListener>());
-            }
-            EventListeners[eventName].Add(eventListener);
-
-            return eventListener;
         }
 
         /// <summary>
@@ -70,12 +50,6 @@ namespace GoogleMapsComponents.Maps
                 "setMap",
                 map);
 
-            //_map = map;
-        }
-
-        public void Dispose()
-        {
-            _jsObjectRef?.Dispose();
         }
     }
 }

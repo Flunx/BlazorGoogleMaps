@@ -1,20 +1,16 @@
-﻿using Microsoft.JSInterop;
+﻿using GoogleMapsComponents.Maps.Extension;
+using Microsoft.JSInterop;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GoogleMapsComponents.Maps
 {
-    public class ImageMapType : IDisposable
+    public class ImageMapType : EventEntityBase, IDisposable
     {
-        private readonly JsObjectRef _jsObjectRef;
-
-        public readonly Dictionary<string, List<MapEventListener>> EventListeners;
-
         public Guid Guid => _jsObjectRef.Guid;
         public string Name { get; private set; }
 
-        public async static Task<ImageMapType> CreateAsync(IJSRuntime jsRuntime, string baseUrlFormat, int minZoom, int maxZoom, string name, float opacity)
+        public static async Task<ImageMapType> CreateAsync(IJSRuntime jsRuntime, string baseUrlFormat, int minZoom, int maxZoom, string name, float opacity)
         {
             var realUrl = baseUrlFormat.Replace("{z}", "' + zoom + '").Replace("{x}", "' + coord.x + '").Replace("{y}", "' + coord.y + '");
             string initOpts = @"{
@@ -46,7 +42,13 @@ namespace GoogleMapsComponents.Maps
             };
             return to;
         }
-        public async static Task<ImageMapType> CreateAsync(IJSRuntime jsRuntime, string baseUrlFormat, string[] subDomains, int minZoom, int maxZoom, string name, float opacity)
+        public static async Task<ImageMapType> CreateAsync(IJSRuntime jsRuntime,
+            string baseUrlFormat,
+            string[] subDomains,
+            int minZoom,
+            int maxZoom,
+            string name,
+            float opacity)
         {
             // check if any subdomains were provided
             if (subDomains == null || subDomains.Length == 0)
@@ -76,24 +78,8 @@ namespace GoogleMapsComponents.Maps
             };
             return to;
         }
-        internal ImageMapType(JsObjectRef jsObjectRef)
+        internal ImageMapType(JsObjectRef jsObjectRef) : base(jsObjectRef)
         {
-            _jsObjectRef = jsObjectRef;
-            EventListeners = new Dictionary<string, List<MapEventListener>>();
-        }
-
-        public async Task<MapEventListener> AddListener(string eventName, Action handler)
-        {
-            JsObjectRef listenerRef = await _jsObjectRef.InvokeWithReturnedObjectRefAsync("addListener", eventName, handler);
-            MapEventListener eventListener = new MapEventListener(listenerRef);
-
-            if (!EventListeners.ContainsKey(eventName))
-            {
-                EventListeners.Add(eventName, new List<MapEventListener>());
-            }
-            EventListeners[eventName].Add(eventListener);
-
-            return eventListener;
         }
 
         /// <summary>
@@ -124,12 +110,6 @@ namespace GoogleMapsComponents.Maps
         public async Task SetOpacity(decimal opacity)
         {
             await SetOpacity(Convert.ToDouble(opacity));
-        }
-
-
-        public void Dispose()
-        {
-            _jsObjectRef?.Dispose();
         }
     }
 }

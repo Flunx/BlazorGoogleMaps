@@ -1,4 +1,5 @@
-﻿using Microsoft.JSInterop;
+﻿using GoogleMapsComponents.Maps.Extension;
+using Microsoft.JSInterop;
 using System;
 using System.Threading.Tasks;
 
@@ -7,11 +8,10 @@ namespace GoogleMapsComponents.Maps
     /// <summary>
     /// A rectangle overlay.
     /// </summary>
-    public class Rectangle : IDisposable
+    public class Rectangle : EventEntityBase, IDisposable
     {
-        public Guid Guid => _jsObjetRef.Guid;
+        public Guid Guid => _jsObjectRef.Guid;
 
-        private readonly JsObjectRef _jsObjetRef;
         private Map _map;
 
         /// <summary>
@@ -31,15 +31,9 @@ namespace GoogleMapsComponents.Maps
         /// Create a rectangle using the passed RectangleOptions, which specify the bounds and style.
         /// </summary>
         /// <param name="opts"></param>
-        internal Rectangle(JsObjectRef jsObjectRef, RectangleOptions opts = null)
+        internal Rectangle(JsObjectRef jsObjectRef, RectangleOptions opts = null) : base(jsObjectRef)
         {
-            _jsObjetRef = jsObjectRef;
             _map = opts?.Map;
-        }
-
-        public void Dispose()
-        {
-            _jsObjetRef.Dispose();
         }
 
         /// <summary>
@@ -48,7 +42,7 @@ namespace GoogleMapsComponents.Maps
         /// <returns></returns>
         public Task<LatLngBoundsLiteral> GetBounds()
         {
-            return _jsObjetRef.InvokeAsync<LatLngBoundsLiteral>(
+            return _jsObjectRef.InvokeAsync<LatLngBoundsLiteral>(
                 "getBounds");
         }
 
@@ -58,7 +52,7 @@ namespace GoogleMapsComponents.Maps
         /// <returns></returns>
         public Task<bool> GetDraggable()
         {
-            return _jsObjetRef.InvokeAsync<bool>(
+            return _jsObjectRef.InvokeAsync<bool>(
                 "getDraggable");
         }
 
@@ -68,7 +62,7 @@ namespace GoogleMapsComponents.Maps
         /// <returns></returns>
         public Task<bool> GetEditable()
         {
-            return _jsObjetRef.InvokeAsync<bool>(
+            return _jsObjectRef.InvokeAsync<bool>(
                 "getEditable");
         }
 
@@ -87,7 +81,7 @@ namespace GoogleMapsComponents.Maps
         /// <returns></returns>
         public Task<bool> GetVisible()
         {
-            return _jsObjetRef.InvokeAsync<bool>(
+            return _jsObjectRef.InvokeAsync<bool>(
                 "getVisible");
         }
 
@@ -97,7 +91,7 @@ namespace GoogleMapsComponents.Maps
         /// <param name="bounds"></param>
         public Task SetBounds(LatLngBoundsLiteral bounds)
         {
-            return _jsObjetRef.InvokeAsync(
+            return _jsObjectRef.InvokeAsync(
                 "setBounds",
                 bounds);
         }
@@ -108,7 +102,7 @@ namespace GoogleMapsComponents.Maps
         /// <param name="draggble"></param>
         public Task SetDraggable(bool draggble)
         {
-            return _jsObjetRef.InvokeAsync(
+            return _jsObjectRef.InvokeAsync(
                 "setDraggable",
                 draggble);
         }
@@ -119,7 +113,7 @@ namespace GoogleMapsComponents.Maps
         /// <param name="editable"></param>
         public Task SetEditable(bool editable)
         {
-            return _jsObjetRef.InvokeAsync(
+            return _jsObjectRef.InvokeAsync(
                 "setEditable",
                 editable);
         }
@@ -132,14 +126,14 @@ namespace GoogleMapsComponents.Maps
         {
             _map = map;
 
-            return _jsObjetRef.InvokeAsync(
+            return _jsObjectRef.InvokeAsync(
                 "setMap",
                 map);
         }
 
         public Task SetOptions(RectangleOptions options)
         {
-            return _jsObjetRef.InvokeAsync(
+            return _jsObjectRef.InvokeAsync(
                 "setOptions",
                 options);
         }
@@ -150,25 +144,9 @@ namespace GoogleMapsComponents.Maps
         /// <param name="visible"></param>
         public Task SetVisible(bool visible)
         {
-            return _jsObjetRef.InvokeAsync(
+            return _jsObjectRef.InvokeAsync(
                 "setVisible",
                 visible);
-        }
-
-        public async Task<MapEventListener> AddListener(string eventName, Action handler)
-        {
-            var listenerRef = await _jsObjetRef.InvokeWithReturnedObjectRefAsync(
-                "addListener", eventName, handler);
-
-            return new MapEventListener(listenerRef);
-        }
-
-        public async Task<MapEventListener> AddListener<T>(string eventName, Action<T> handler)
-        {
-            var listenerRef = await _jsObjetRef.InvokeWithReturnedObjectRefAsync(
-                "addListener", eventName, handler);
-
-            return new MapEventListener(listenerRef);
         }
     }
 }

@@ -1,13 +1,12 @@
-﻿using Microsoft.JSInterop;
+﻿using GoogleMapsComponents.Maps.Extension;
+using Microsoft.JSInterop;
 using System;
 using System.Threading.Tasks;
 
 namespace GoogleMapsComponents.Maps
 {
-    public class DirectionsRenderer : IDisposable
+    public class DirectionsRenderer : EventEntityBase, IDisposable
     {
-        private readonly JsObjectRef _jsObjectRef;
-
         public static async Task<DirectionsRenderer> CreateAsync(IJSRuntime jsRuntime, DirectionsRendererOptions opts = null)
         {
             var jsObjectRef = await JsObjectRef.CreateAsync(jsRuntime, "google.maps.DirectionsRenderer", opts);
@@ -16,14 +15,8 @@ namespace GoogleMapsComponents.Maps
             return obj;
         }
 
-        private DirectionsRenderer(JsObjectRef jsObjectRef)
+        private DirectionsRenderer(JsObjectRef jsObjectRef) : base(jsObjectRef)
         {
-            _jsObjectRef = jsObjectRef;
-        }
-
-        public void Dispose()
-        {
-            _jsObjectRef?.Dispose();
         }
 
         /// <summary>
@@ -32,7 +25,7 @@ namespace GoogleMapsComponents.Maps
         /// <param name="request"></param>
         /// <param name="directionsRequestOptions">Lets you specify which route response paths to opt out from clearing.</param>
         /// <returns></returns>
-        public async Task<DirectionsResult> Route(DirectionsRequest request, DirectionsRequestOptions directionsRequestOptions = null)
+        public async Task<DirectionsResult?> Route(DirectionsRequest request, DirectionsRequestOptions? directionsRequestOptions = null)
         {
             if (directionsRequestOptions == null)
             {
@@ -114,22 +107,5 @@ namespace GoogleMapsComponents.Maps
                 "setRouteIndex",
                 routeIndex);
         }
-
-        public async Task<MapEventListener> AddListener(string eventName, Action handler)
-        {
-            var listenerRef = await _jsObjectRef.InvokeWithReturnedObjectRefAsync(
-                "addListener", eventName, handler);
-
-            return new MapEventListener(listenerRef);
-        }
-
-        public async Task<MapEventListener> AddListener<T>(string eventName, Action<T> handler)
-        {
-            var listenerRef = await _jsObjectRef.InvokeWithReturnedObjectRefAsync(
-                "addListener", eventName, handler);
-
-            return new MapEventListener(listenerRef);
-        }
-
     }
 }

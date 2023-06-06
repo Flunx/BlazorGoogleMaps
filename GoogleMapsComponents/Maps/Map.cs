@@ -1,4 +1,5 @@
 ﻿using GoogleMapsComponents.Maps.Coordinates;
+using GoogleMapsComponents.Maps.Extension;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using OneOf;
@@ -13,10 +14,8 @@ namespace GoogleMapsComponents.Maps
     /// google.maps.Map class
     /// </summary>
     //[JsonConverter(typeof(JsObjectRefConverter<Map>))]
-    public class Map : IDisposable, IJsObjectRef
+    public class Map : EventEntityBase, IDisposable, IJsObjectRef
     {
-        private readonly JsObjectRef _jsObjectRef;
-
         public Guid Guid => _jsObjectRef.Guid;
 
         public MapData Data { get; private set; }
@@ -36,9 +35,8 @@ namespace GoogleMapsComponents.Maps
             return map;
         }
 
-        private Map(JsObjectRef jsObjectRef, MapData data)
+        private Map(JsObjectRef jsObjectRef, MapData data) : base(jsObjectRef)
         {
-            _jsObjectRef = jsObjectRef;
             Data = data;
         }
 
@@ -60,11 +58,12 @@ namespace GoogleMapsComponents.Maps
             await _jsObjectRef.JSRuntime.MyInvokeAsync<object>("blazorGoogleMaps.objectManager.removeAllImageLayers", this.Guid.ToString());
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             JsObjectRefInstances.Remove(_jsObjectRef.Guid.ToString());
             _jsObjectRef.JSRuntime.InvokeAsync<object>("blazorGoogleMaps.objectManager.disposeMapElements", Guid.ToString());
-            _jsObjectRef.Dispose();
+            base.Dispose();
+            //_jsObjectRef.Dispose();
         }
 
         /// <summary>
@@ -227,22 +226,6 @@ namespace GoogleMapsComponents.Maps
         public Task SetOptions(MapOptions mapOptions)
         {
             return _jsObjectRef.InvokeAsync("setOptions", mapOptions);
-        }
-
-        public async Task<MapEventListener> AddListener(string eventName, Action handler)
-        {
-            var listenerRef = await _jsObjectRef.InvokeWithReturnedObjectRefAsync(
-                "addListener", eventName, handler);
-
-            return new MapEventListener(listenerRef);
-        }
-
-        public async Task<MapEventListener> AddListener<T>(string eventName, Action<T> handler)
-        {
-            var listenerRef = await _jsObjectRef.InvokeWithReturnedObjectRefAsync(
-                "addListener", eventName, handler);
-
-            return new MapEventListener(listenerRef);
         }
     }
 }
