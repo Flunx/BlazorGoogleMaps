@@ -40,4 +40,12 @@ public class LatLngLiteral
     public LatLngLiteral(decimal lat, decimal lng) : this(Convert.ToDouble(lat), Convert.ToDouble(lng))
     {
     }
+
+    public static LatLngLiteral Parse(string literal)
+    {
+        var s = literal.Split(',');
+        var lat = double.Parse(s[0], System.Globalization.CultureInfo.InvariantCulture);
+        var lng = double.Parse(s[1], System.Globalization.CultureInfo.InvariantCulture);
+        return new LatLngLiteral(lat, lng);
+    }
 }
