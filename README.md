@@ -5,7 +5,10 @@ Blazor interop for GoogleMap library
 LatLngLiteral constructor's parameters order changed #173
 
 **Breaking change from 3.0.0**
-Migrate from Newtonsoft.Json to System.Text.Json. Could be some issue so please register anything which is suspicious #254
+Migrate from Newtonsoft.Json to System.Text.Json.
+
+**Breaking change from 4.0.0**
+Migrate to .net 8 #286.
 
 [![NuGet version (BlazorGoogleMaps)](https://img.shields.io/nuget/v/BlazorGoogleMaps)](https://www.nuget.org/packages/BlazorGoogleMaps/)
 
@@ -13,7 +16,7 @@ Migrate from Newtonsoft.Json to System.Text.Json. Could be some issue so please 
 1. Add google map script HEAD tag to wwwroot/index.html in Client side or _Host.cshtml in Server Side.
 How to get key follow https://developers.google.com/maps/documentation/javascript/get-api-key
 
-Do not forgor addition libraries if required *&libraries=places,visualization,drawing*
+Do not forgot addition libraries if required *&libraries=places,visualization,drawing*
 
 If you got 'Loading the Google Maps JavaScript API without a callback is not supported' then add *&callback=Function.prototype*
 ```
@@ -63,7 +66,7 @@ If you want to use marker clustering in a Client Side project then add the follo
 ```
 
 ## Known Issues
-Adding map in razor page without _Host.cshtml use  RenderComponentAsync<T> to render componenent or/and try changing the Rendermode to Server in the host file
+Adding map in razor page without _Host.cshtml use  RenderComponentAsync<T> to render component or/and try changing the Rendermode to Server in the host file
 
 Server Side issue with Route DirectionsResult when using DirectionsRequestOptions all paths are included (all set to false). MaximumReceiveMessageSize reaches limit of 32kb. Then limit should be increased or set to null (unlimited)
 ```

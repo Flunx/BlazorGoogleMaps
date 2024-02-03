@@ -14,7 +14,15 @@
         return fn;
     }
 
+    const extendableStringify = function (obj, replacer, space) {
+        if (window.blazorGoogleMapsBeforeStringify) {
+            obj = window.blazorGoogleMapsBeforeStringify(obj);
+        }
+        return JSON.stringify(obj, replacer, space);
+    };
+
     let mapObjects = {};
+    let controlParents = {}
     const dateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
 
     //Strip circular dependencies, map object and functions
@@ -72,11 +80,11 @@
                 if (args.length == 1 && typeof args[0].marker !== "undefined") {
                     var n = args[0].marker;
                     args[0].marker = null;
-                    await item.invokeMethodAsync("Invoke", JSON.stringify(args, getCircularReplacer()), guid);
+                    await item.invokeMethodAsync("Invoke", extendableStringify(args, getCircularReplacer()), guid);
                     args[0].marker = n;
                 }
                 else {
-                    await item.invokeMethodAsync("Invoke", JSON.stringify(args, getCircularReplacer()), guid);
+                    await item.invokeMethodAsync("Invoke", extendableStringify(args, getCircularReplacer()), guid);
                 }
 
                 blazorGoogleMaps.objectManager.disposeObject(guid);
@@ -228,7 +236,7 @@
     //ServerSide (Client Side have no issues) reach MaximumReceiveMessageSize (32kb) and crash if we return all data
     //Workaround is to increase limit MaximumReceiveMessageSize
     function cleanDirectionResult(dirResponse, dirRequestOptions) {
-        let tmpdirobj = JSON.parse(JSON.stringify(dirResponse));
+        let tmpdirobj = JSON.parse(extendableStringify(dirResponse));
 
         tmpdirobj.routes.forEach((r) => {
             if (dirRequestOptions == undefined || dirRequestOptions.stripOverviewPath) {
@@ -272,8 +280,8 @@
                 return google.maps.ControlPosition.LEFT_BOTTOM;
             case "LEFT_CENTER":
                 return google.maps.ControlPosition.LEFT_CENTER;
-            case "LEFT_CENTER":
-                return google.maps.ControlPosition.LEFT_CENTER;
+            case "LEFT_TOP":
+                return google.maps.ControlPosition.LEFT_TOP;
             case "RIGHT_BOTTOM":
                 return google.maps.ControlPosition.RIGHT_BOTTOM;
             case "RIGHT_CENTER":
@@ -314,8 +322,8 @@
                     renderer.setDirections(result);
                 }
 
-                let jsonRest = JSON.stringify(cleanDirectionResult(result, options));
-                //console.log(JSON.stringify(jsonRest));
+                let jsonRest = extendableStringify(cleanDirectionResult(result, options));
+                //console.log(extendableStringify(jsonRest));
                 return jsonRest;
             } catch (error) {
                 console.log(error);
@@ -329,10 +337,20 @@
             get mapObjects() { return mapObjects; },
             createObject: function (args) {
                 mapObjects = mapObjects || [];
+                
 
                 let args2 = args.slice(2).map(arg => tryParseJson(arg));
                 //console.log(args2);
                 let functionName = args[1];
+                if (functionName == "google.maps.marker.AdvancedMarkerView") {
+                    var content = args2[0].content;
+                    if (content != null && content !== undefined) {
+                        var template = document.createElement('template');
+                        content = content.trim();
+                        template.innerHTML = content;
+                        args2[0].content = template.content.firstChild;
+                    }
+                }
                 let constructor = stringToFunction(functionName);
                 let obj = new constructor(...args2);
                 let guid = args[0];
@@ -381,12 +399,70 @@
             },
 
             addControls(args) {
-                let map = mapObjects[args[0]];
+                let mapGuid = args[0];
+                let map = mapObjects[mapGuid];
                 let elem = args[2];
+                if(!elem) return
                 //I know i am lazy. Two quotes appear after serialization
                 let position = getGooglePositionFromString(args[1].replace("\"", "").replace("\"", ""));
 
+                // check if the control already exists
+                var controls = map.controls[position].getArray();
+                for (var i = 0; i < controls.length; i++) {
+                    if (controls[i].id === elem.id) {
+                        return;
+                    }
+                }
+
+                if (controlParents == null) {
+                    controlParents = {}
+                }
+                if (controlParents.hasOwnProperty(mapGuid) == false) {
+                    controlParents[mapGuid] = {}
+                }
+                if (controlParents[mapGuid].hasOwnProperty(elem.id) == false && !controlParents[mapGuid][elem.id]) {
+                    let parentElement = elem.parentElement
+                    controlParents[mapGuid][elem.id] = parentElement;
+                }
+                
+                elem.style.display = "block";
                 map.controls[position].push(elem);
+            },
+            appendControlElementToOriginalParent(mapGuid, control) {
+                const parent = controlParents[mapGuid][control.id];
+                if (parent) {
+                    parent.appendChild(control);
+                    control.style.display = "none";
+                }
+                delete controlParents[mapGuid][control.id];
+            },
+            internalRemoveControlAt(mapGuid, position, controlIndex) {
+                const map = mapObjects[mapGuid];
+                if (controlIndex !== -1) {
+                    let control = map.controls[position].removeAt(controlIndex);
+                    this.appendControlElementToOriginalParent(mapGuid, control);
+                }
+            },
+            internalRemoveControls(mapGuid, position) {
+                const map = mapObjects[mapGuid];
+                for (let i = map.controls[position].length - 1; i >= 0; i--) {
+                    this.internalRemoveControlAt(mapGuid, position, i);
+                }
+            },
+            removeControl(args) {
+                const mapGuid = args[0];
+                const map = mapObjects[mapGuid];
+                const position = getGooglePositionFromString(args[1].replace(/"/g, ""));
+
+                const elemId = args[2].id;
+                const controlIndex = map.controls[position].getArray().findIndex(control => control.id === elemId);
+
+                this.internalRemoveControlAt(mapGuid, position, controlIndex);
+            },
+            removeControls(args) {
+                const mapGuid = args[0];
+                const position = getGooglePositionFromString(args[1].replace(/"/g, ""));
+                this.internalRemoveControls(mapGuid, position);
             },
             addImageLayer(args) {
                 let map = mapObjects[args[0]];
@@ -419,17 +495,30 @@
                         var element = mapObjects[key];
                         if (element.hasOwnProperty("map")
                             && element.hasOwnProperty("guidString")
+                            && element.map !== null
+                            && element.map !== undefined
                             && element.map.guidString === mapGuid) {
                             keysToRemove.push(element.guidString);
                         }
                     }
                 }
-
                 for (var keyToRemove in keysToRemove) {
                     if (keysToRemove.hasOwnProperty(keyToRemove)) {
                         var elementToRemove = keysToRemove[keyToRemove];
                         delete mapObjects[elementToRemove];
                     }
+                }
+
+                if (controlParents !== null && controlParents.hasOwnProperty(mapGuid)) {
+                    const map = mapObjects[mapGuid];
+                    for (let position in map.controls) {
+                        this.internalRemoveControls(mapGuid, position);
+                    }
+                    delete controlParents[mapGuid];
+                }
+
+                if (controlParents !== null && Object.keys(controlParents) == 0) {
+                    controlParents = null;
                 }
             },
 
@@ -499,7 +588,7 @@
                         console.log(e);
                     }
 
-                    let jsonRest = JSON.stringify(cleanDirectionResult(result, dirRequestOptions));
+                    let jsonRest = extendableStringify(cleanDirectionResult(result, dirRequestOptions));
                     return jsonRest;
                 }
                 else if (functionToInvoke == "getProjection") {
@@ -598,6 +687,18 @@
                         console.log(e);
                     }
                 }
+                else if (functionToInvoke == "overrideStyle") {
+
+                    try {
+                        var featureId = args[2].replace('"', "").replace('"', "");
+                        var feature = mapObjects[featureId];
+                        var data = mapObjects[args[0]];
+                        var request = tryParseJson(args[3]);
+                        data.overrideStyle(feature, request);
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
                 else {
                     var result = null;
                     try {
@@ -611,7 +712,7 @@
                         && typeof result === "object") {
                         if (result.hasOwnProperty("geocoded_waypoints") && result.hasOwnProperty("routes")) {
 
-                            let jsonRest = JSON.stringify(cleanDirectionResult(result));
+                            let jsonRest = extendableStringify(cleanDirectionResult(result));
                             return jsonRest;
                         }
                         if ("getArray" in result) {
@@ -621,12 +722,23 @@
                         if ("addListener" == functionToInvoke) {
                             return result;
                         }
+
+                        if ("addGeoJson" == functionToInvoke) {
+                            var resultGuids = [];
+                            result.forEach(coords => {
+                                var addedObjGuid = this.addObject(coords);
+                                resultGuids.push(addedObjGuid);
+                            });
+
+                            return resultGuids;
+                        }
+
                         if ("get" in result) {
                             return result.get("guidString");
                         } else if ("dotnetTypeName" in result) {
-                            return JSON.stringify(result, getCircularReplacer());
+                            return extendableStringify(result, getCircularReplacer());
                         } else {
-                            return JSON.parse(JSON.stringify(result, getCircularReplacer()));
+                            return JSON.parse(extendableStringify(result, getCircularReplacer()));
                         }
                     } else if (functionToInvoke === "remove") {
                         this.disposeObject(args[0]);
@@ -684,7 +796,7 @@
                 google.maps.event.addListener(drawingManager, "overlaycomplete", function (event) {
                     let overlayUuid = uuidv4();
                     mapObjects[overlayUuid] = event.overlay;
-                    let returnObj = JSON.stringify([{ type: event.type, uuid: overlayUuid.toString() }]);
+                    let returnObj = extendableStringify([{ type: event.type, uuid: overlayUuid.toString() }]);
                     act.invokeMethodAsync("Invoke", returnObj, uuid);
                 });
             },
