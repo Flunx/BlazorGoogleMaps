@@ -225,4 +225,12 @@ public class MapOptions
     /// page without changing embedded JSON styling in your application code.
     /// </summary>
     public string? MapId { get; set; }
+
+    /// <summary>
+    /// Enabling this lets you zoom using fractional values instead of integers.
+    /// While both raster and vector maps support fractional zoom, 
+    /// fractional zoom is on by default for vector maps, and off by default for raster maps. 
+    /// Use the isFractionalZoomEnabled map option to turn fractional zoom on and off.
+    /// </summary>
+    public bool IsFractionalZoomEnabled { get; set; }
 }
