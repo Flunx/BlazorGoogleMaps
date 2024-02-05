@@ -82,7 +82,7 @@ public class MapOptions
     /// The heading for aerial imagery in degrees measured clockwise from cardinal direction North.<br/>
     /// Headings are snapped to the nearest available angle for which imagery is available.
     /// </summary>
-    public int? Heading { get; set; }
+    public float? Heading { get; set; }
 
     /// <summary>
     /// The heading for aerial imagery in degrees measured clockwise from cardinal direction North.<br/>
