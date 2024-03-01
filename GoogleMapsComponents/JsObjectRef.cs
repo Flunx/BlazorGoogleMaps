@@ -279,6 +279,20 @@ public class JsObjectRef : IJsObjectRef, IDisposable
             propertyName);
     }
 
+    public Task SetValue(string propertyName, object value)
+    {
+        return _jsRuntime.MyInvokeAsync(
+            "blazorGoogleMaps.objectManager.writeObjectPropertyValue",
+            _guid.ToString(), propertyName, value);
+    }
+
+    public Task SetPosition(double lat, double lng)
+    {
+        return _jsRuntime.MyInvokeAsync(
+            "blazorGoogleMaps.objectManager.setPosition",
+            _guid.ToString(), "position", lat, lng);
+    }
+
     public async Task<JsObjectRef> GetObjectReference(string propertyName)
     {
         var guid = await _jsRuntime.MyInvokeAsync<string>(

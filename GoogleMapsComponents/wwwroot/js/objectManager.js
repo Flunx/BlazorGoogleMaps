@@ -847,6 +847,16 @@
                 return obj[args[1]];
             },
 
+            writeObjectPropertyValue: function (args) {
+                let obj = mapObjects[args[0]];
+                obj[args[1]] = args[2];
+            },
+
+            setPosition: function (args) {
+                let obj = mapObjects[args[0]];
+                obj[args[1]] = new google.maps.LatLng(args[2], args[3])
+            },
+    
             readObjectPropertyValueWithReturnedObjectRef: function (args) {
 
                 let obj = mapObjects[args[0]];
